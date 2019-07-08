@@ -27,12 +27,12 @@
   },
   "homepage": "https://github.com/G3F4/uWebSockets-boilerplate#readme",
   "dependencies": {
+    "@types/node": "12.6.0",
     "ts-node": "8.3.0",
     "typescript": "3.5.2",
     "uWebSockets.js": "uNetworking/uWebSockets.js#v15.11.0"
   },
   "devDependencies": {
-    "@types/node": "12.6.0",
-    "ts-node-dev": "^1.0.0-pre.40"
+    "ts-node-dev": "1.0.0-pre.40"
   }
 }

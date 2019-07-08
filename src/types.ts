@@ -1,1 +1,1 @@
-export type StaticFileExtension = 'css' | 'js';
+export type StaticFileExtension = 'css' | 'js' | 'ico';

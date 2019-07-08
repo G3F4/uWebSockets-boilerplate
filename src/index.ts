@@ -1,13 +1,30 @@
-import { App } from 'uWebSockets.js';
 import { readFileSync } from 'fs';
+import { App } from 'uWebSockets.js';
 import { StaticFileExtension } from './types';
 
 const PORT = parseInt(process.env.PORT, 10) || 3001;
 
 const server = App();
 
+server.ws('/*', {
+  open: (ws, req) => {
+    console.log('A WebSocket connected via URL: ' + req.getUrl() + '!');
+  },
+  message: (ws, message, isBinary) => {
+    const ok = ws.send(message, isBinary);
+  },
+  drain: (ws) => {
+    console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
+  },
+  close: (ws, code, message) => {
+    console.log('WebSocket closed');
+  }
+
+});
+
 // testing endpoint
-// example: http://localhost:3001/test/testParametruPierwszego/test/testParametruDrugiego/?parampierwszy=test1&paramdrugi=test2
+// example:
+// http://localhost:3001/test/testParametruPierwszego/test/testParametruDrugiego/?parampierwszy=test1&paramdrugi=test2
 server.get('/test/:firstParam/test/:secondParam', (res, req) => {
   // print User-Agent header
   process.stdout.write(req.getHeader('user-agent'));
@@ -39,38 +56,50 @@ server.get('/', (res, req) => {
   res.writeHeader('Content-Type', 'text/html');
 
   // read index.html into text string
-  const indexPage = readFileSync(`${__dirname}/public/index.html`, 'utf8');
+  const indexPage = readFileSync(`${process.cwd()}/public/index.html`, 'utf8');
 
   // end response - send
   res.end(indexPage);
 
 });
 
-server.get('/*', (res, req) => {
-  // read url
-  const url = req.getUrl();
+server.any('/*', (res, req) => {
+  process.stdout.write(`${req.getUrl()}\n`);
 
-  // read file
-  const file = readFileSync(`${__dirname}/public${req.getUrl()}`, 'utf8');
+  try {
+    // read url
+    const url = req.getUrl();
 
-  // split url by dot to extract file extension
-  const urlParts = url.split('.');
-  const fileExtension = urlParts[urlParts.length - 1] as StaticFileExtension;
+    // split url by dot to extract file extension
+    const urlParts = url.split('.');
+    const fileExtension = urlParts[urlParts.length - 1] as StaticFileExtension;
 
-  // set Content-Type header based on file extension
-  switch (fileExtension) {
-    case 'css': {
-      res.writeHeader('Content-Type', 'text/css');
-      break;
+    // set Content-Type header based on file extension
+    switch (fileExtension) {
+      case 'css': {
+        res.writeHeader('Content-Type', 'text/css');
+        break;
+      }
+      case 'js': {
+        res.writeHeader('Content-Type', 'text/javascript');
+        break;
+      }
+      case 'ico': {
+        res.writeHeader('Content-Type', 'image/x-icon');
+        break;
+      }
     }
-    case 'js': {
-      res.writeHeader('Content-Type', 'text/javascript');
-      break;
-    }
+
+    // read file
+    const file = readFileSync(`${process.cwd()}/public${req.getUrl()}`, 'utf8');
+
+    // end response - send
+    res.end(file);
   }
 
-  // end response - send
-  res.end(file);
+  catch (e) {
+    res.end(e.toString());
+  }
 });
 
 // start server by setting PORT to listening

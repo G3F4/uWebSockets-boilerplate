@@ -1,0 +1,14 @@
+body {
+    background-color: #eee;
+}
+
+#root {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header {
+    font-family: monospace;
+}

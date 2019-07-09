@@ -29,6 +29,7 @@
   "homepage": "https://github.com/G3F4/uWebSockets-boilerplate#readme",
   "dependencies": {
     "@types/node": "12.6.0",
+    "mqtt-packet": "^6.2.0",
     "ts-node": "8.3.0",
     "typescript": "3.5.2",
     "uWebSockets.js": "uNetworking/uWebSockets.js#v15.11.0"

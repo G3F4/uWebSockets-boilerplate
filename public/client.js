@@ -2,15 +2,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const contentNode = document.createElement('div');
   const headerNode = document.createElement('h1');
   const headerTextNode = document.createTextNode('uWebSockets.js boilerplate!');
-  const divNode = document.createElement('div');
-  const divTextNode = document.createTextNode(`Server time: ${(new Date(Date.now()).toLocaleTimeString())}`);
+  const counterWrapperNode = document.createElement('div');
+  const counterTextWrapperNode = document.createElement('div');
+  const counterButtonWrapperNode = document.createElement('div');
+  const counterButtonNode = document.createElement('button');
+  const counterButtonTextNode = document.createTextNode('Increment');
+  const counterTextNode = document.createTextNode(`Counter: `);
 
   headerNode.setAttribute('class', 'header');
-  divNode.setAttribute('id', 'time-now');
+  counterWrapperNode.setAttribute('class', 'counter');
+
   headerNode.appendChild(headerTextNode);
-  divNode.appendChild(divTextNode);
+
+  counterTextWrapperNode.appendChild(counterTextNode);
+  counterWrapperNode.appendChild(counterTextWrapperNode);
+
+  counterButtonNode.appendChild(counterButtonTextNode);
+  counterButtonWrapperNode.appendChild(counterButtonNode);
+  counterWrapperNode.appendChild(counterButtonWrapperNode);
+
   contentNode.appendChild(headerNode);
-  contentNode.appendChild(divNode);
+  contentNode.appendChild(counterWrapperNode);
+
   document.getElementById('root').appendChild(contentNode);
 
   const ws = new WebSocket('ws://localhost:3001');
@@ -22,14 +35,20 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(['WebSocket.onclose'], event);
   };
   ws.onmessage = event => {
-    const { data, type } = JSON.parse(event.data);
-    console.log(['WebSocket.onmessage'], { data, type });
+    const { action, topic, data } = JSON.parse(event.data);
+    console.log(['WebSocket.onmessage'], { action, topic, data });
 
-    if (type === 'SERVER_TIME') {
-      divNode.innerHTML = `Server time: ${(new Date(data).toLocaleTimeString())}`;
+    if (topic === 'counter' || action === 'update') {
+      counterTextWrapperNode.innerHTML = `Counter: ${data}`;
     }
   };
   ws.onerror = event => {
     console.log(['WebSocket.onerror'], event);
   };
+
+  counterButtonNode.addEventListener('click', () => {
+    console.log(['increment']);
+
+    ws.send(JSON.stringify({ action: 'increment', topic: 'counter', data: null }));
+  });
 });

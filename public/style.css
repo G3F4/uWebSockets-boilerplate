@@ -16,3 +16,8 @@ body {
 .header {
     font-family: monospace;
 }
+
+.counter {
+    display: flex;
+    justify-content: space-around;
+}

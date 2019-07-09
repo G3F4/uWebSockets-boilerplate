@@ -1,10 +1,12 @@
 import { readFileSync } from 'fs';
 import { App } from 'uWebSockets.js';
-import { StaticFileExtension } from './types';
+import { CounterAction, StaticFileExtension, Topic } from './types';
 
 const PORT = parseInt(process.env.PORT, 10) || 3001;
 
 const server = App();
+
+let counter = 0;
 
 server.ws('/*', {
   // Zero memory overhead compression
@@ -15,21 +17,32 @@ server.ws('/*', {
   idleTimeout: 99999,
   // Handler for new WebSocket connection. WebSocket is valid from open to close, no errors
   open: (ws, req) => {
-    console.log(['server.ws.drain'], ws, req);
-    ws.send(JSON.stringify({
-      data: 'Connection established',
-      type: 'SERVER_INIT'
-    }));
-    setInterval(() => {
-      ws.send(JSON.stringify({
-        data: Date.now(),
-        type: 'SERVER_TIME'
-      }));
-    }, 1000);
+    console.log(['server.ws.open'], ws, req);
+
+    // https://github.com/uNetworking/uWebSockets.js/issues/164
+    // #TODO w wersji 16 maja działać
+    ws.subscribe('counter');
+    ws.subscribe('home/sensors/#');
+    ws.publish('counter', JSON.stringify({ action: 'update', topic: 'counter', data: counter }));
+    ws.send(JSON.stringify({ action: 'update', topic: 'counter', data: counter }));
   },
   // Handler for a WebSocket message
   message: (ws, message, isBinary) => {
-    console.log(['server.ws.message'], message, isBinary);
+    // console.log(['server.ws.message'], message, isBinary);
+    const enc = new TextDecoder('utf-8');
+    const { action, topic, data } = JSON.parse(enc.decode(message));
+
+    console.log(['enc.decode(message)'], { action, topic, data });
+
+    if (topic as Topic === 'counter') {
+      if (action as CounterAction === 'increment') {
+        counter++;
+
+        ws.publish('home/sensors/temperature', message);
+        ws.publish('counter', JSON.stringify({ action: 'update', topic: '', data: counter }));
+        ws.send(JSON.stringify({ action: 'update', topic: 'counter', data: counter }));
+      }
+    }
   },
   // Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount()
   drain: (ws) => {
@@ -37,9 +50,8 @@ server.ws('/*', {
   },
   // Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event
   close: (ws, code, message) => {
-    console.log(['server.ws.drain'], ws, code, message);
+    console.log(['server.ws.close'], ws, code, message);
   }
-
 });
 
 server.get('/', (res, req) => {

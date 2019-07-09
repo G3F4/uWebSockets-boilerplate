@@ -7,9 +7,13 @@ const PORT = parseInt(process.env.PORT, 10) || 3001;
 const server = App();
 
 server.ws('/*', {
+  // Zero memory overhead compression
   compression: 0,
+  // Maximum length of received message
   maxPayloadLength: 16 * 1024 * 1024,
-  // idleTimeout: 10,
+  // Maximum amount of seconds that may pass without sending or getting a message
+  idleTimeout: 99999,
+  // Handler for new WebSocket connection. WebSocket is valid from open to close, no errors
   open: (ws, req) => {
     console.log(['server.ws.drain'], ws, req);
     ws.send(JSON.stringify({
@@ -23,12 +27,15 @@ server.ws('/*', {
       }));
     }, 1000);
   },
+  // Handler for a WebSocket message
   message: (ws, message, isBinary) => {
     console.log(['server.ws.message'], message, isBinary);
   },
+  // Handler for when WebSocket backpressure drains. Check ws.getBufferedAmount()
   drain: (ws) => {
     console.log(['server.ws.drain'], ws.getBufferedAmount());
   },
+  // Handler for close event, no matter if error, timeout or graceful close. You may not use WebSocket after this event
   close: (ws, code, message) => {
     console.log(['server.ws.drain'], ws, code, message);
   }

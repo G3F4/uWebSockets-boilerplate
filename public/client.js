@@ -28,5 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (type === 'SERVER_TIME') {
       divNode.innerHTML = `Server time: ${(new Date(data).toLocaleTimeString())}`;
     }
-  }
+  };
+  ws.onerror = event => {
+    console.log(['WebSocket.onerror'], event);
+  };
 });

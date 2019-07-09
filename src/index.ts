@@ -11,57 +11,27 @@ server.ws('/*', {
   maxPayloadLength: 16 * 1024 * 1024,
   // idleTimeout: 10,
   open: (ws, req) => {
-    console.log('A WebSocket connected via URL: ' + req.getUrl() + '!');
+    console.log(['server.ws.drain'], ws, req);
     ws.send(JSON.stringify({
-      data: 'Connection established'
+      data: 'Connection established',
+      type: 'SERVER_INIT'
     }));
     setInterval(() => {
       ws.send(JSON.stringify({
-        data: Date.now()
+        data: Date.now(),
+        type: 'SERVER_TIME'
       }));
     }, 1000);
   },
   message: (ws, message, isBinary) => {
-    console.log(['message'], message, isBinary);
-    ws.send(JSON.stringify({
-      data: message
-    }), isBinary);
+    console.log(['server.ws.message'], message, isBinary);
   },
   drain: (ws) => {
-    console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
+    console.log(['server.ws.drain'], ws.getBufferedAmount());
   },
   close: (ws, code, message) => {
-    console.log('WebSocket closed');
+    console.log(['server.ws.drain'], ws, code, message);
   }
-
-});
-
-// testing endpoint
-// example:
-// http://localhost:3001/test/testParametruPierwszego/test/testParametruDrugiego/?parampierwszy=test1&paramdrugi=test2
-server.get('/test/:firstParam/test/:secondParam', (res, req) => {
-  // print User-Agent header
-  process.stdout.write(req.getHeader('user-agent'));
-  process.stdout.write(`${req.getMethod()}\n`);
-  process.stdout.write(`${req.getQuery()}\n`);
-  process.stdout.write(`${req.getUrl()}\n`);
-  process.stdout.write(`${req.getParameter(0)}\n`);
-  process.stdout.write(`${req.getParameter(1)}\n`);
-
-  // set Content-Type header
-  res.writeHeader('Content-Type', 'text/html');
-
-  // write simple html doc
-  res.write('<html>');
-  res.write('<body>');
-  res.write('<div>');
-  res.write('hello from uWebSockets.js!');
-  res.write('</div>');
-  res.write('</body>');
-  res.write('</html>');
-
-  // end response - send
-  res.end();
 
 });
 

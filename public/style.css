@@ -9,6 +9,10 @@ body {
     justify-content: center;
 }
 
+#time-now {
+    text-align: center;
+}
+
 .header {
     font-family: monospace;
 }

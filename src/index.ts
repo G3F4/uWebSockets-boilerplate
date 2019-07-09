@@ -7,11 +7,25 @@ const PORT = parseInt(process.env.PORT, 10) || 3001;
 const server = App();
 
 server.ws('/*', {
+  compression: 0,
+  maxPayloadLength: 16 * 1024 * 1024,
+  // idleTimeout: 10,
   open: (ws, req) => {
     console.log('A WebSocket connected via URL: ' + req.getUrl() + '!');
+    ws.send(JSON.stringify({
+      data: 'Connection established'
+    }));
+    setInterval(() => {
+      ws.send(JSON.stringify({
+        data: Date.now()
+      }));
+    }, 1000);
   },
   message: (ws, message, isBinary) => {
-    const ok = ws.send(message, isBinary);
+    console.log(['message'], message, isBinary);
+    ws.send(JSON.stringify({
+      data: message
+    }), isBinary);
   },
   drain: (ws) => {
     console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
